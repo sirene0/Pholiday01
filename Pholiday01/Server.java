@@ -6,6 +6,7 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +22,7 @@ public class Server {
     private Map<Long, Spectacle> spectacles; 
     private ExecutorService threadpool;
     private ServerSocket serverSocket;
+    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     public Server() {
         spectacles = new ConcurrentHashMap<>();
@@ -126,6 +128,15 @@ public class Server {
                         case LIST_SPECTACLES:
                             reponse = handleListSpectacles(request);
                             break;
+                        case ADD_SPECTACLE:
+                            reponse = handleAddSpectacle(request);
+                            break;
+                        case REMOVE_SPECTACLE:
+                            reponse = handleRemoveSpectacle(request);
+                            break;
+                        case MODIFY_SPECTACLE:
+                            reponse = handleModifySpectacle(request);
+                            break;
                         default:
                             reponse = new Reponse(ResponseType.ERROR, "Unknown request type: "+request.getType());
                             break;
@@ -193,6 +204,102 @@ public class Server {
                 }
             }
             return null;
+        }
+        
+        private Reponse handleAddSpectacle(Request request){
+            String name = request.getNameSpectacle();
+            int totalPlaces = request.getNumberPlace();
+            String dateTime = request.getDateTime();
+            if(name == null || name.trim().isEmpty()){
+                return new Reponse(ResponseType.ERROR, "Spectacle name cannot be empty.");
+            }
+            if(totalPlaces <=0){
+                return new Reponse(ResponseType.ERROR, "Total places must be greater than zero.");
+            }
+            LocalDateTime date;
+            try {
+                date = LocalDateTime.parse(dateTime, formatter);
+            } catch (Exception e) {
+                return new Reponse(ResponseType.ERROR, "Invalid date format. Please use dd/MM/yyyy HH:mm.");
+            }
+            synchronized(spectacles){
+                if(FindByName( name)!=null){
+                    return new Reponse(ResponseType.ERROR, "Spectacle name already exists.");
+                }
+                if (FindByDate(dateTime) != null) {
+                    return new Reponse(ResponseType.ERROR, "Spectacle date already booked.");
+                    
+                }
+                Spectacle newSpectacle = new Spectacle(name, totalPlaces, date);
+                spectacles.put(newSpectacle.getId(), newSpectacle);
+                return new Reponse(ResponseType.SPECTACLE_ADDED, "Spectacle added successfully: "+newSpectacle.toString());
+            }
+        }
+        
+        private Spectacle FindByDate(String dateTime){
+            LocalDateTime date;
+            try {
+                date = LocalDateTime.parse(dateTime, formatter);
+            } catch (Exception e) {
+                return null;
+            }
+            for(Spectacle s: spectacles.values()){
+                if(s.getDateTime().equals(date)){
+                    return s;
+                }
+            }
+            return null;
+        }
+
+        private Reponse handleRemoveSpectacle(Request request){
+            String name = request.getNameSpectacle();
+            if(name == null || name.trim().isEmpty()){
+                return new Reponse(ResponseType.ERROR, "Spectacle name cannot be empty.");
+            }
+            synchronized(spectacles){
+                Spectacle spectacle = FindByName(name);
+                if(spectacle == null){
+                    return new Reponse(ResponseType.SPECTACLE_NOT_FOUND, "Spectacle not found: "+name);
+                }
+                spectacles.remove(spectacle.getId());
+                return new Reponse(ResponseType.SPECTACLE_REMOVED, "Spectacle removed successfully: "+spectacle.toString());
+            }
+        }
+
+        private Reponse handleModifySpectacle(Request request){
+            Long id = request.getIdSpectacle();
+            if(id == null){
+                return new Reponse(ResponseType.ERROR, "Spectacle ID cannot be null for modification.");
+            }
+            Spectacle spectacle = spectacles.get(id);
+            if(spectacle == null){
+                return new Reponse(ResponseType.SPECTACLE_NOT_FOUND, "Spectacle not found with ID: "+id);
+            }
+            String newName = request.getNameSpectacle();
+            int newTotalPlaces = request.getNumberPlace();
+            String newDateTime = request.getDateTime();
+            LocalDateTime newDate;
+            
+            try{
+                newDate = LocalDateTime.parse(newDateTime, formatter);
+            } catch (Exception e) {
+                return new Reponse(ResponseType.ERROR, "Invalid date format. Please use dd/MM/yyyy HH:mm.");
+            }
+            synchronized (spectacles){
+                Spectacle existingByName = FindByName(newName);
+                if(existingByName !=null && !existingByName.getId().equals(id)){
+                    return new Reponse(ResponseType.ERROR, "Another spectacle with the same name already exists: "+newName);
+                }
+                Spectacle existingByDate = FindByDate(newDateTime);
+                if(existingByDate !=null && !existingByDate.getId().equals(id)){
+                    return new Reponse(ResponseType.ERROR, "Another spectacle is already scheduled at the same date and time: "+newDateTime);
+                }
+                spectacle.setTitleSpectacle(newName);
+                spectacle.setPlacesDisponibles(newTotalPlaces);
+                spectacle.setDateTime(newDate);
+                return new Reponse(ResponseType.SPECTACLE_MODIFIED, "Spectacle modified successfully: "+spectacle.toString());
+            }
+
         }
     }
 }

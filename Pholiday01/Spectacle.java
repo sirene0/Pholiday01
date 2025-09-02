@@ -26,7 +26,11 @@ public class Spectacle {
     public Long getId() {return id;}
     public String getTitleSpectacle() {return titleSpectacle;}
     public synchronized int getPlacesDisponibles() {return placesDisponibles;}
-
+    public void setTitleSpectacle(String titleSpectacle) {this.titleSpectacle = titleSpectacle;}
+    public synchronized void setPlacesDisponibles(int placesDisponibles) {this.placesDisponibles = placesDisponibles;}
+    public void setDateTime(LocalDateTime dateTime) {this.dateTime = dateTime;}
+    
+    @Override
     public String toString() {
         return "ID: " + id + ", Title: " + titleSpectacle + ", Places Available: " + placesDisponibles + ", Date & Time: " + getFormatter();
     }
