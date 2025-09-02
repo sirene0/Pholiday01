@@ -23,7 +23,6 @@ public class Server {
     private ExecutorService threadpool;
     private ServerSocket serverSocket;
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static long compteurReservation = 0L; // Compteur pour les numéros de réservation
 
     public Server() {
         spectacles = new ConcurrentHashMap<>();
@@ -46,12 +45,6 @@ public class Server {
             System.out.println("Initialized spectacle : "+s.toString());
         }
         System.out.println("Total spectacles initialized : "+spectacles.size());
-    }
-    
-    // Méthode pour générer un numéro de réservation unique
-    private synchronized String genererNumeroReservation() {
-        compteurReservation++;
-        return "RES-" + String.format("%06d", compteurReservation);
     }
 
     public void start(){
@@ -188,12 +181,18 @@ public class Server {
             if(request.getNumberPlace() <=0){
                 return new Reponse(ResponseType.ERROR, " Invalid number of places requested : " + request.getNumberPlace());
             }
-            boolean success = spectacle.reserverPlaces(request.getNumberPlace());
-            if(success){
-                String numeroReservation = genererNumeroReservation();
+            
+            java.util.List<Integer> siegesReserves = spectacle.reserverSieges(request.getNumberPlace());
+            if(siegesReserves != null){
+                StringBuilder siegesStr = new StringBuilder();
+                for(int i = 0; i < siegesReserves.size(); i++){
+                    if(i > 0) siegesStr.append(", ");
+                    siegesStr.append("Seat ").append(siegesReserves.get(i));
+                }
+                
                 String message = "Reservation successful for "+request.getNumberPlace()+" places in spectacle: "+spectacle.getTitleSpectacle()+
-                               "\nReservation number: "+numeroReservation;
-                return new Reponse(request.getNumberPlace(), message, ResponseType.RESERVATION_CONFIRMED, numeroReservation);
+                               "\nYour seats: " + siegesStr.toString();
+                return new Reponse(request.getNumberPlace(), message, ResponseType.RESERVATION_CONFIRMED, siegesReserves);
             } else {
                 return new Reponse(ResponseType.INSUFFICIENT_PLACES, "Reservation failed. Not enough places available in spectacle: "+spectacle.getTitleSpectacle());
             }

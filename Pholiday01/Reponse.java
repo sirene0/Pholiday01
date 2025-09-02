@@ -1,6 +1,7 @@
 package Pholiday01;
 
 import java.io.Serializable;
+import java.util.List;
 import Pholiday01.enums.ResponseType;
 
 public class Reponse implements Serializable{
@@ -9,33 +10,33 @@ public class Reponse implements Serializable{
     private int nbPlacesReservees ;  
     private String message ;
     private ResponseType reponseType;
-    private String numeroReservation; // Nouveau champ pour le numéro de réservation
+    private List<Integer> numerosSieges; // Numéros des sièges réservés
 
     public Reponse(int nbPlacesReservees, String message, ResponseType reponseType) {
         this.nbPlacesReservees = nbPlacesReservees;
         this.message = message;
         this.reponseType = reponseType;
-        this.numeroReservation = null;
+        this.numerosSieges = null;
     }
 
     public Reponse (ResponseType reponseType, String message) {
         this.reponseType = reponseType;
         this.message = message;
         this.nbPlacesReservees = 0;
-        this.numeroReservation = null;
+        this.numerosSieges = null;
     }
     
-    // Constructeur avec numéro de réservation pour les confirmations
-    public Reponse(int nbPlacesReservees, String message, ResponseType reponseType, String numeroReservation) {
+    // Constructeur avec numéros de sièges
+    public Reponse(int nbPlacesReservees, String message, ResponseType reponseType, List<Integer> numerosSieges) {
         this.nbPlacesReservees = nbPlacesReservees;
         this.message = message;
         this.reponseType = reponseType;
-        this.numeroReservation = numeroReservation;
+        this.numerosSieges = numerosSieges;
     }
 
     public int getNbPlacesReservees() {return nbPlacesReservees;}
     public String getMessage() {return message;}
     public ResponseType getReponseType() {return reponseType;}
-    public String getNumeroReservation() {return numeroReservation;}
+    public List<Integer> getNumerosSieges() {return numerosSieges;}
 
 }

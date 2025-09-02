@@ -106,9 +106,14 @@ public class Client {
             switch (reponse.getReponseType()){
                 case RESERVATION_CONFIRMED:
                     System.out.println("Success : "+reponse.getMessage());
-                    if(reponse.getNumeroReservation() != null) {
-                        System.out.println("🎫 Your reservation number: " + reponse.getNumeroReservation());
-                        System.out.println("Please keep this number for your records.");
+                    if(reponse.getNumerosSieges() != null && !reponse.getNumerosSieges().isEmpty()) {
+                        System.out.print("🪑 Your seat numbers: ");
+                        for(int i = 0; i < reponse.getNumerosSieges().size(); i++){
+                            if(i > 0) System.out.print(", ");
+                            System.out.print(reponse.getNumerosSieges().get(i));
+                        }
+                        System.out.println();
+                        System.out.println("Please keep this information for your records.");
                     }
                     break;
                 case INSUFFICIENT_PLACES:
