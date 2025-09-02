@@ -23,6 +23,7 @@ public class Server {
     private ExecutorService threadpool;
     private ServerSocket serverSocket;
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static long compteurReservation = 0L; // Compteur pour les numéros de réservation
 
     public Server() {
         spectacles = new ConcurrentHashMap<>();
@@ -45,6 +46,12 @@ public class Server {
             System.out.println("Initialized spectacle : "+s.toString());
         }
         System.out.println("Total spectacles initialized : "+spectacles.size());
+    }
+    
+    // Méthode pour générer un numéro de réservation unique
+    private synchronized String genererNumeroReservation() {
+        compteurReservation++;
+        return "RES-" + String.format("%06d", compteurReservation);
     }
 
     public void start(){
@@ -183,7 +190,10 @@ public class Server {
             }
             boolean success = spectacle.reserverPlaces(request.getNumberPlace());
             if(success){
-                return new Reponse(request.getNumberPlace(), "Reservation successful for "+request.getNumberPlace()+" places in spectacle: "+spectacle.getTitleSpectacle(), ResponseType.RESERVATION_CONFIRMED);
+                String numeroReservation = genererNumeroReservation();
+                String message = "Reservation successful for "+request.getNumberPlace()+" places in spectacle: "+spectacle.getTitleSpectacle()+
+                               "\nReservation number: "+numeroReservation;
+                return new Reponse(request.getNumberPlace(), message, ResponseType.RESERVATION_CONFIRMED, numeroReservation);
             } else {
                 return new Reponse(ResponseType.INSUFFICIENT_PLACES, "Reservation failed. Not enough places available in spectacle: "+spectacle.getTitleSpectacle());
             }

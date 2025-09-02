@@ -106,6 +106,10 @@ public class Client {
             switch (reponse.getReponseType()){
                 case RESERVATION_CONFIRMED:
                     System.out.println("Success : "+reponse.getMessage());
+                    if(reponse.getNumeroReservation() != null) {
+                        System.out.println("🎫 Your reservation number: " + reponse.getNumeroReservation());
+                        System.out.println("Please keep this number for your records.");
+                    }
                     break;
                 case INSUFFICIENT_PLACES:
                     System.out.println("Error : "+reponse.getMessage());
