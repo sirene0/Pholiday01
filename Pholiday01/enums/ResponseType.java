@@ -1,0 +1,11 @@
+package Pholiday01.enums;
+
+public enum ResponseType {
+    OK,
+    ERROR,
+    PLACES_DISPONIBLES,
+    RESERVATION_CONFIRMED,
+    INSUFFICIENT_PLACES,
+    SPECTACLE_NOT_FOUND,
+    LIST_SPECTACLES
+}
